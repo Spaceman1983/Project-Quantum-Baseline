@@ -1,41 +1,91 @@
 """
 Project Quantum Baseline (PQB)
-Reference Decoder: Prime Sequence Pulse Verification with AWGN Noise Floor
+Reference Decoder: Prime Sequence Verification & 2D Raster Frame Reconstruction
+Carrier: 1420.405 MHz | License: MIT
 """
 
 import numpy as np
 
 
-def generate_noisy_signal(pulse_train: list[int], snr_db: float = 10.0) -> np.ndarray:
-    """Simulates an interstellar carrier with synthetic Additive White Gaussian Noise (AWGN)."""
-    signal = []
-    for count in pulse_train:
-        signal.extend([1.0] * count)
-        signal.extend([0.0] * 3)  # inter-pulse spacing
-
-    signal = np.array(signal)
-    snr_linear = 10 ** (snr_db / 10.0)
-    power_signal = np.mean(signal**2)
-    power_noise = power_signal / snr_linear
-    noise = np.random.normal(0, np.sqrt(power_noise), len(signal))
-
-    return signal + noise
-
-
-def extract_and_verify(pulse_counts: list[int]) -> bool:
-    """Verifies whether detected pulse clusters match the initial prime sequence."""
+def verify_prime_handshake(pulse_counts: list[int]) -> bool:
+    """Verifies beacon acquisition against fundamental prime seed."""
     primes = [2, 3, 5, 7, 11, 13, 17, 19, 23]
-    if len(pulse_counts) < len(primes):
-        return False
-    return pulse_counts[: len(primes)] == primes
+    return len(pulse_counts) >= len(primes) and pulse_counts[: len(primes)] == primes
+
+
+def decode_raster_payload(bitstream: list[int]) -> np.ndarray:
+    """
+    Deconstructs a linear 1D bitstream into a 2D matrix by identifying
+    its unique non-trivial prime factorization (Semiprime check: N = p * q).
+    """
+    total_bits = len(bitstream)
+
+    # Find prime factor pairs
+    factors = [
+        (p, total_bits // p)
+        for p in range(2, int(total_bits**0.5) + 1)
+        if total_bits % p == 0
+    ]
+
+    if not factors:
+        raise ValueError(
+            f"Bitstream length {total_bits} is not a valid semiprime product."
+        )
+
+    # Standardize dimensions (height, width)
+    rows, cols = factors[0]
+    return np.array(bitstream).reshape((rows, cols))
 
 
 if __name__ == "__main__":
-    baseline_primes = [2, 3, 5, 7, 11, 13, 17, 19, 23]
-    raw_synthetic = generate_noisy_signal(baseline_primes, snr_db=12.0)
-    verified = extract_and_verify(baseline_primes)
+    # 1. Verify Phase 1 Beacon Handshake
+    test_beacons = [2, 3, 5, 7, 11, 13, 17, 19, 23]
+    handshake_status = verify_prime_handshake(test_beacons)
+    print(f"Phase 1 Beacon Acquisition: {'PASS' if handshake_status else 'FAIL'}")
 
-    print(
-        f"Simulated {len(raw_synthetic)} baseband samples at 12 dB SNR (1420.405 MHz window)."
-    )
-    print(f"PQB Prime Handshake Status: {'PASS' if verified else 'FAIL'}")
+    # 2. Simulate Phase 5 Raster (7 x 5 = 35-bit Semiprime Payload)
+    # Synthetic cross/glyph pattern in binary:
+    payload_35bit = [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+    ]
+
+    raster = decode_raster_payload(payload_35bit)
+    print(f"Phase 5 Payload Restructured to Matrix Dimensions: {raster.shape}")
+    print("\nVisual Raster Output:")
+    for row in raster:
+        print("".join(["██" if bit == 1 else "  " for bit in row]))
+   
