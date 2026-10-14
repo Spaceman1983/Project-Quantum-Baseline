@@ -8,7 +8,8 @@ An open-source, mathematically structured interstellar transmission protocol ope
 Project Quantum Baseline provides an open RFC specification and executable reference decoder for synthetic interstellar signal generation and pulse verification. It eliminates linguistic dependencies by scaffolding data across a 5-step mathematical logic ladder grounded in dimensionless physical constants.
 
 ## Core Documents
-* **[RFC-0001 Specification](RFC-001.md)** - Complete transmission protocol, carrier physics, and handshake structure.
-* **[Reference Python Decoder](decoder.py)** - Synthetic signal acquisition and prime pulse verification.
+* [Interactive Decoder (Google Colab)](https://colab.research.google.com/drive/1mv0aXlYeRVY0zOPtMqHr2zOHuz9ymFJR) - Direct browser execution of prime acquisition and verification.
+* [RFC-0001 Specification](RFC-001.md) - Complete transmission protocol, carrier physics, and handshake structure.
+* [Reference Python Decoder](decoder.py) - Synthetic signal acquisition and prime pulse verification.
 
 ## Signal Processing Pipeline
